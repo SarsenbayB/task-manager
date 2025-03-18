@@ -28,6 +28,7 @@ const TaskKanban = () => {
 
       task.addEventListener("dragend", () => {
         task.classList.remove("is-dragging");
+        task.parentElement?.removeChild(task);
       });
     });
 
@@ -40,12 +41,10 @@ const TaskKanban = () => {
         );
         const curTask = document.querySelector(".is-dragging");
 
-        if (!bottomTask) {
-          if (curTask) {
+        if (curTask && curTask.parentElement !== zone) {
+          if (!bottomTask) {
             zone.appendChild(curTask);
-          }
-        } else {
-          if (curTask) {
+          } else {
             zone.insertBefore(curTask, bottomTask);
           }
         }

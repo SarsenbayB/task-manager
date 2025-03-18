@@ -19,3 +19,5 @@ export interface TaskLane {
   status: "todo" | "inProgress" | "completed";
   tasks: Task[];
 }
+
+export type TaskStatus = "todo" | "inProgress" | "completed";

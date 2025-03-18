@@ -1,16 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import prisma from "@/lib/prisma";
-
-// const prisma = new PrismaClient();
 
 export async function GET() {
   try {
+    // Fetch tasks and organize them into lanes
     const tasks = await prisma.task.findMany();
-    return NextResponse.json(tasks);
+
+    // Group tasks by status
+    const todoTasks = tasks.filter((task) => task.status === "todo");
+    const inProgressTasks = tasks.filter(
+      (task) => task.status === "inProgress"
+    );
+    const completedTasks = tasks.filter((task) => task.status === "completed");
+
+    // Create lanes structure
+    const lanes = [
+      {
+        title: "To Do",
+        status: "todo",
+        tasks: todoTasks,
+      },
+      {
+        title: "In Progress",
+        status: "inProgress",
+        tasks: inProgressTasks,
+      },
+      {
+        title: "Completed",
+        status: "completed",
+        tasks: completedTasks,
+      },
+    ];
+
+    return NextResponse.json(lanes);
   } catch (error) {
     return NextResponse.json(
-      { error: "Ошибка при получении задач" },
+      { error: "Error fetching tasks" },
       { status: 500 }
     );
   }
@@ -24,9 +49,6 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(newTask);
   } catch (error) {
-    return NextResponse.json(
-      { error: "Ошибка при создании задачи" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Error creating task" }, { status: 500 });
   }
 }

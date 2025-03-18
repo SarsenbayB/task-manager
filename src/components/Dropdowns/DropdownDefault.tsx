@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ClickOutside from "@/components/ClickOutside";
 import { useTaskContext } from "../Tasks/TaskContext";
+import TaskPopup from "../Tasks/TaskPopup";
 
 
 interface Task {
@@ -9,6 +10,7 @@ interface Task {
   description?: string;
   status: "todo" | "inProgress" | "completed";
   taskItems: any[];
+  isLoading: boolean;
 }
 
 interface DropdownDefaultProps {
@@ -18,6 +20,12 @@ interface DropdownDefaultProps {
 const DropdownDefault: React.FC<DropdownDefaultProps> = ({ task }) => {
   const { deleteTask, updateTask } = useTaskContext();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+
+  const handleEditTask = () => {
+    setDropdownOpen(false); // Закрываем dropdown
+    setPopupOpen(true); // Открываем popup
+  };
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)}>
@@ -52,7 +60,7 @@ const DropdownDefault: React.FC<DropdownDefaultProps> = ({ task }) => {
           <div
             className={`absolute right-0 top-full z-40 w-46.5 space-y-1.5 rounded-[7px] border border-stroke bg-white p-2 shadow-2 dark:border-dark-3 dark:bg-dark-2 dark:shadow-card`}
           >
-            <button onClick={() => updateTask(task)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-[9px] text-left  font-medium text-dark-4 hover:bg-gray-2 hover:text-dark dark:text-dark-6 dark:hover:bg-dark-3 dark:hover:text-white">
+            <button onClick={handleEditTask} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-[9px] text-left  font-medium text-dark-4 hover:bg-gray-2 hover:text-dark dark:text-dark-6 dark:hover:bg-dark-3 dark:hover:text-white">
               <svg
                 className="fill-current"
                 width="18"
@@ -108,6 +116,14 @@ const DropdownDefault: React.FC<DropdownDefaultProps> = ({ task }) => {
               Delete
             </button>
           </div>
+        )}
+        {popupOpen && (
+          <TaskPopup
+            popupOpen={popupOpen}
+            setPopupOpen={setPopupOpen}
+            task={task} // Передаем текущую задачу в TaskPopup
+            updateTask={updateTask} // Передаем функцию обновления задачи
+          />
         )}
       </div>
     </ClickOutside>

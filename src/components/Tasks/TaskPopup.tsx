@@ -1,33 +1,52 @@
 import React, { useState } from "react";
 import ClickOutside from "@/components/ClickOutside";
 import { useTaskContext } from "./TaskContext";
+import { Task } from "./types";
+
+
 
 interface TaskPopupProps {
   popupOpen: boolean;
   setPopupOpen: (open: boolean) => void;
+  task?: Task;
+  addTask?: (newTask: Task) => void;
+  updateTask?: (updatedTask: Task) => void;
 }
 
-
-const TaskPopup: React.FC<TaskPopupProps> = ({ popupOpen, setPopupOpen }) => {
+const TaskPopup: React.FC<TaskPopupProps> = ({ popupOpen, setPopupOpen, task,
+  updateTask }) => {
   const { addTask } = useTaskContext();
-  const [files, setFiles] = useState<FileList | null>(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(task?.title || "");
+  const [description, setDescription] = useState(task?.description || "");
+  const [status, setStatus] = useState(task?.status);
+
+
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!title.trim()) return; // Проверяем, что поле не пустое
+    if (!title.trim()) return;
 
-    addTask({
+    const updatedTask = {
+      id: task?.id || Date.now().toString(), // Если это новая задача, генерируем ID
       title,
-      status: "todo", // Можно сделать выбор статуса
-      taskItems: [],
       description,
-    });
+      status: status as "todo" | "inProgress" | "completed",
+      taskItems: task?.taskItems || [],
+      isLoading: task?.isLoading ?? false,
+    };
 
-    setPopupOpen(false); // Закрываем попап
-    setTitle(""); // Очищаем поля
+    if (task) {
+      // Если есть задача для редактирования, вызываем updateTask
+      updateTask?.(updatedTask);
+    } else {
+      // Если задачи нет, вызываем addTask
+      addTask?.(updatedTask);
+    }
+
+    setPopupOpen(false);
+    setTitle("");
     setDescription("");
+    setStatus("todo");
   };
 
   return (
@@ -100,231 +119,27 @@ const TaskPopup: React.FC<TaskPopupProps> = ({ popupOpen, setPopupOpen }) => {
 
             <div className="mb-5">
               <label
-                htmlFor="taskList"
-                className="mb-2.5 block font-medium text-black dark:text-white"
-              >
-                Task list
-              </label>
-              <div className="flex flex-col gap-3.5">
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="text"
-                    name="taskList"
-                    id="taskList"
-                    placeholder="Enter list text"
-                    className="w-full rounded-[7px] border border-stroke bg-white px-4.5 py-3 text-dark focus:border-primary focus-visible:outline-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-                  />
-
-                  <button className="flex h-12.5 w-full max-w-12.5 items-center justify-center rounded-[7px] border border-stroke bg-white hover:text-primary dark:border-dark-3 dark:bg-dark-2">
-                    <svg
-                      className="fill-current"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z"
-                        fill=""
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
-                        fill=""
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="text"
-                    name="taskList"
-                    id="taskList"
-                    placeholder="Enter list text"
-                    className="w-full rounded-[7px] border border-stroke bg-white px-4.5 py-3 text-dark focus:border-primary focus-visible:outline-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-                  />
-
-                  <button className="ml-1.5 flex h-12.5 w-full max-w-12.5 items-center justify-center rounded-[7px] border border-stroke bg-white hover:text-primary dark:border-dark-3 dark:bg-dark-2">
-                    <svg
-                      className="fill-current"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M15 12.75C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H15Z"
-                        fill=""
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
-                        fill=""
-                      />
-                    </svg>
-                  </button>
-                  <button className="flex h-12.5 w-full max-w-12.5 items-center justify-center rounded-[7px] border border-stroke bg-white hover:text-primary dark:border-dark-3 dark:bg-dark-2">
-                    <svg
-                      className="fill-current"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z"
-                        fill=""
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
-                        fill=""
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="text"
-                    name="taskList"
-                    id="taskList"
-                    placeholder="Enter list text"
-                    className="w-full rounded-[7px] border border-stroke bg-white px-4.5 py-3 text-dark focus:border-primary focus-visible:outline-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
-                  />
-
-                  <button className="ml-1.5 flex h-12.5 w-full max-w-12.5 items-center justify-center rounded-[7px] border border-stroke bg-white hover:text-primary dark:border-dark-3 dark:bg-dark-2">
-                    <svg
-                      className="fill-current"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M15 12.75C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H15Z"
-                        fill=""
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
-                        fill=""
-                      />
-                    </svg>
-                  </button>
-                  <button className="flex h-12.5 w-full max-w-12.5 items-center justify-center rounded-[7px] border border-stroke bg-white hover:text-primary dark:border-dark-3 dark:bg-dark-2">
-                    <svg
-                      className="fill-current"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z"
-                        fill=""
-                      />
-                      <path
-                        fillRule="evenodd"
-                        clipRule="evenodd"
-                        d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM2.75 12C2.75 6.89137 6.89137 2.75 12 2.75C17.1086 2.75 21.25 6.89137 21.25 12C21.25 17.1086 17.1086 21.25 12 21.25C6.89137 21.25 2.75 17.1086 2.75 12Z"
-                        fill=""
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-5">
-              <label
-                htmlFor="taskImg"
+                htmlFor="taskStatus"
                 className="mb-2.5 block font-medium text-dark dark:text-white"
               >
-                Add image
+                Status
               </label>
-              <div>
-                <div
-                  id="FileUpload"
-                  className="relative block w-full appearance-none rounded-[7px] border border-dashed border-stroke bg-white px-4 py-4 dark:border-dark-3 dark:bg-dark-2 sm:py-14"
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="absolute inset-0 z-50 m-0 h-full w-full p-0 opacity-0 outline-none"
-                    onChange={(event) => setFiles(event.target.files)}
-                  />
-                  <div className="flex flex-col items-center justify-center space-y-3">
-                    <span className="flex h-13.5 w-13.5 items-center justify-center rounded-full border border-stroke bg-primary/5 dark:border-dark-3">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clipPath="url(#clip0_75_12841)">
-                          <path
-                            d="M2.5 15.8333H17.5V17.5H2.5V15.8333ZM10.8333 4.85663V14.1666H9.16667V4.85663L4.1075 9.91663L2.92917 8.73829L10 1.66663L17.0708 8.73746L15.8925 9.91579L10.8333 4.85829V4.85663Z"
-                            fill="#3C50E0"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_75_12841">
-                            <rect width="20" height="20" fill="white" />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                    </span>
-                    <p className="text-body-sm">
-                      <span className="text-primary">Click to upload</span> or
-                      drag and drop
-                    </p>
-                  </div>
-                </div>
-
-                {files !== null && (
-                  <div className="mt-4.5 rounded-[7px] border border-stroke bg-white px-4 py-3 dark:border-dark-3 dark:bg-dark-2">
-                    <div className="flex items-center justify-between">
-                      <span>{files[0].name}</span>
-
-                      <button onClick={() => setFiles(null)}>
-                        <svg
-                          className="fill-current"
-                          width="10"
-                          height="10"
-                          viewBox="0 0 10 10"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M0.279337 0.279338C0.651787 -0.0931121 1.25565 -0.0931121 1.6281 0.279338L9.72066 8.3719C10.0931 8.74435 10.0931 9.34821 9.72066 9.72066C9.34821 10.0931 8.74435 10.0931 8.3719 9.72066L0.279337 1.6281C-0.0931125 1.25565 -0.0931125 0.651788 0.279337 0.279338Z"
-                            fill=""
-                          />
-                          <path
-                            fillRule="evenodd"
-                            clipRule="evenodd"
-                            d="M0.279337 9.72066C-0.0931125 9.34821 -0.0931125 8.74435 0.279337 8.3719L8.3719 0.279338C8.74435 -0.0931127 9.34821 -0.0931123 9.72066 0.279338C10.0931 0.651787 10.0931 1.25565 9.72066 1.6281L1.6281 9.72066C1.25565 10.0931 0.651787 10.0931 0.279337 9.72066Z"
-                            fill=""
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <select
+                id="taskStatus"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as "todo" | "inProgress" | "completed")}
+                className="w-full rounded-[7px] border border-stroke bg-white px-4.5 py-3 text-dark focus:border-primary focus-visible:outline-none dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"
+              >
+                <option value="todo">To Do</option>
+                <option value="inProgress">In Progress</option>
+                <option value="completed">Done</option>
+              </select>
             </div>
-            <button type="submit" className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-primary px-4.5 py-3.5 font-medium text-white hover:bg-opacity-90">
+
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-2 rounded-[7px] bg-primary px-4.5 py-3.5 font-medium text-white hover:bg-opacity-90"
+            >
               <svg
                 className="fill-current"
                 width="20"
@@ -344,7 +159,7 @@ const TaskPopup: React.FC<TaskPopupProps> = ({ popupOpen, setPopupOpen }) => {
                   fill=""
                 />
               </svg>
-              Add task
+              {task ? "Update task" : "Add task"}
             </button>
           </form>
         </div>
