@@ -11,6 +11,7 @@ export interface Task {
   image?: string;
   status: "todo" | "inProgress" | "completed";
   taskItems: TaskItem[];
+  isLoading: boolean;
 }
 
 export interface TaskLane {
